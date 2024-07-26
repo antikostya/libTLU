@@ -32,8 +32,6 @@
         ((type *)((uint64)(const void *)(ptr) - offsetof(type, member)))
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-#define PTR_ERR(ptr) ((ptr) < (void *)4096ul)
-
 
 #define __VA_CLEAR(...)
 #define __VA_SAME(...) __VA_ARGS__
