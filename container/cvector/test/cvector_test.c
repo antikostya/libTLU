@@ -306,7 +306,7 @@ UTEST(cvector_create_from_ext)
 UTEST(cvector_create_from_list)
 {
 	uint8 *v0 = cvector_create_from_list(uint8, 0, {9, 8, 7});
-	int *v1 = cvector_create_from_list(int, 0, {1, 2, 3, 4});
+	int *v1 = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3, 4});
 	uint64 *v2 = cvector_create_from_list(uint64, 0, {3, 2, 1});
 	const char **v3 = cvector_create_from_list(const char *, 0, {"lol", "kek"});
 
@@ -767,18 +767,19 @@ UTEST(cvector_insert)
 {
 	int *v = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
 
-	cvector_insert(&v, cvector_end(v), 1);
+	int *it = cvector_insert(&v, cvector_end(v), 1, 0);
+	ASSERT_EQUAL(1, *it);
 	ASSERT_CVECTOR(v, "1");
-	cvector_insert(&v, cvector_end(v), 2);
+	ASSERT_EQUAL(2, *cvector_insert(&v, cvector_end(v), 2, 0));
 	ASSERT_CVECTOR(v, "12");
-	cvector_insert(&v, cvector_end(v), 3);
+	ASSERT_EQUAL(3, *cvector_insert(&v, cvector_end(v), 3, 0));
 	ASSERT_CVECTOR(v, "123");
 
-	cvector_insert(&v, cvector_begin(v), 4);
+	ASSERT_EQUAL(4, *cvector_insert(&v, cvector_begin(v), 4, 0));
 	ASSERT_CVECTOR(v, "4123");
-	cvector_insert(&v, cvector_begin(v), 5);
+	ASSERT_EQUAL(5, *cvector_insert(&v, cvector_begin(v), 5, 0));
 	ASSERT_CVECTOR(v, "54123");
-	cvector_insert(&v, cvector_begin(v), 6);
+	ASSERT_EQUAL(6, *cvector_insert(&v, cvector_begin(v), 6, 0));
 	ASSERT_CVECTOR(v, "654123");
 
 	cvector_destroy(v);
@@ -788,7 +789,7 @@ UTEST(cvector_insert2)
 {
 	int *v = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
 
-	cvector_insert(&v, cvector_end(v), 1);
+	ASSERT_EQUAL(1, *cvector_insert(&v, cvector_end(v), 1, 0));
 	ASSERT_CVECTOR(v, "1");
 
 	cvector_destroy(v);
@@ -796,10 +797,10 @@ UTEST(cvector_insert2)
 
 UTEST(cvector_insert3)
 {
-	int *v = cvector_create_from_list(int, 0, {1, 2, 3});
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
 
 	ASSERT_CVECTOR(v, "123");
-	cvector_insert(&v, cvector_begin(v) + 2, 9);
+	ASSERT_EQUAL(9, *cvector_insert(&v, cvector_begin(v) + 2, 9, 0));
 	ASSERT_CVECTOR(v, "1293");
 
 	cvector_destroy(v);
@@ -809,13 +810,13 @@ UTEST(cvector_push_back)
 {
 	int *v = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
 
-	cvector_push_back(&v, 1);
+	ASSERT_EQUAL(1, *cvector_push_back(&v, 1, 0));
 	ASSERT_CVECTOR(v, "1");
 
-	cvector_push_back(&v, 2);
+	ASSERT_EQUAL(2, *cvector_push_back(&v, 2, 0));
 	ASSERT_CVECTOR(v, "12");
 
-	cvector_push_back(&v, 3);
+	ASSERT_EQUAL(3, *cvector_push_back(&v, 3, 0));
 	ASSERT_CVECTOR(v, "123");
 
 	cvector_destroy(v);
@@ -823,15 +824,15 @@ UTEST(cvector_push_back)
 
 UTEST(cvector_push_back2)
 {
-	int *v = cvector_create_from_list(int, 0, {1, 2, 3});
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
 
-	cvector_push_back(&v, 9);
+	ASSERT_EQUAL(9, *cvector_push_back(&v, 9, 0));
 	ASSERT_CVECTOR(v, "1239");
 
-	cvector_push_back(&v, 8);
+	ASSERT_EQUAL(8, *cvector_push_back(&v, 8, 0));
 	ASSERT_CVECTOR(v, "12398");
 
-	cvector_push_back(&v, 7);
+	ASSERT_EQUAL(7, *cvector_push_back(&v, 7, 0));
 	ASSERT_CVECTOR(v, "123987");
 
 	cvector_destroy(v);
@@ -841,13 +842,13 @@ UTEST(cvector_push_front)
 {
 	int *v = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
 
-	cvector_push_front(&v, 1);
+	ASSERT_EQUAL(1, *cvector_push_front(&v, 1, 0));
 	ASSERT_CVECTOR(v, "1");
 
-	cvector_push_front(&v, 2);
+	ASSERT_EQUAL(2, *cvector_push_front(&v, 2, 0));
 	ASSERT_CVECTOR(v, "21");
 
-	cvector_push_front(&v, 3);
+	ASSERT_EQUAL(3, *cvector_push_front(&v, 3, 0));
 	ASSERT_CVECTOR(v, "321");
 
 	cvector_destroy(v);
@@ -855,16 +856,140 @@ UTEST(cvector_push_front)
 
 UTEST(cvector_push_front2)
 {
-	int *v = cvector_create_from_list(int, 0, {1, 2, 3});
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
 
-	cvector_push_front(&v, 9);
+	ASSERT_EQUAL(9, *cvector_push_front(&v, 9, 0));
 	ASSERT_CVECTOR(v, "9123");
 
-	cvector_push_front(&v, 8);
+	ASSERT_EQUAL(8, *cvector_push_front(&v, 8, 0));
 	ASSERT_CVECTOR(v, "89123");
 
-	cvector_push_front(&v, 7);
+	ASSERT_EQUAL(7, *cvector_push_front(&v, 7, 0));
 	ASSERT_CVECTOR(v, "789123");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_erase)
+{
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3, 4, 5, 6});
+	int *it;
+
+	it = cvector_erase(&v, cvector_rbegin(v), 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "12345");
+
+	it = cvector_erase(&v, cvector_rbegin(v), 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "1234");
+
+	it = cvector_erase(&v, cvector_rbegin(v), 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "123");
+
+	it = cvector_erase(&v, cvector_begin(v), 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "23");
+
+	it = cvector_erase(&v, cvector_begin(v), 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "3");
+
+	it = cvector_erase(&v, cvector_begin(v), 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_erase2)
+{
+	int16 *v = cvector_create_from_list(int16, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3, 4, 5, 6});
+	int16 *it;
+
+	it = cvector_erase(&v, cvector_begin(v) + 3, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v) + 3, it);
+	ASSERT_CVECTOR(v, "12356");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_pop_back)
+{
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
+	int *it;
+
+	it = cvector_pop_back(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "12");
+
+	it = cvector_pop_back(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "1");
+
+	it = cvector_pop_back(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_pop_back2)
+{
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3, 9, 8, 7});
+	int *it;
+
+	it = cvector_pop_back(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "12398");
+
+	it = cvector_pop_back(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "1239");
+
+	it = cvector_pop_back(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_end(v), it);
+	ASSERT_CVECTOR(v, "123");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_pop_front)
+{
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
+	int *it;
+
+	it = cvector_pop_front(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "23");
+
+	it = cvector_pop_front(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "3");
+
+	it = cvector_pop_front(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_pop_front2)
+{
+	int *v = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3, 7, 8, 9});
+	int *it;
+
+	it = cvector_pop_front(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "23789");
+
+	it = cvector_pop_front(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "3789");
+
+	it = cvector_pop_front(&v, 0);
+	ASSERT_EQUAL_PTR(cvector_begin(v), it);
+	ASSERT_CVECTOR(v, "789");
 
 	cvector_destroy(v);
 }
