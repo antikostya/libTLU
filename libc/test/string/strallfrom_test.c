@@ -8,30 +8,32 @@
 #include <string.h>
 #include <stdlib.h>
 
-UTEST(strbreak_simple)
+UTEST(strallfrom_simple)
 {
 	const char *s = "12x456x78910x";
 
-	ASSERT_EQUAL_PTR(s + 2, tlu_strbreak(s, "zxcvb"));
+	ASSERT_EQUAL_PTR(s + 2, tlu_strallfrom(s, "1234567890"));
 }
 
-UTEST(strbreak_simple2)
+UTEST(strallfrom_simple2)
 {
 	const char *s = "123456";
 
-	ASSERT_NULL(tlu_strbreak(s, "qwerty"));
-	ASSERT_EQUAL_PTR(s, tlu_strbreak(s, "123456"));
-	ASSERT_EQUAL_PTR(s + 5, tlu_strbreak(s, "6"));
+	ASSERT_EQUAL_PTR(s, tlu_strallfrom(s, "qwerty"));
+	ASSERT_NULL(tlu_strallfrom(s, "123456"));
+	ASSERT_EQUAL_PTR(s + 5, tlu_strallfrom(s, "12345"));
 }
 
-UTEST(strbreak_simple3)
+UTEST(strallfrom_simple3)
 {
-	ASSERT_NULL(tlu_strbreak("123", ""));
-	ASSERT_NULL(tlu_strbreak("", ""));
-	ASSERT_NULL(tlu_strbreak("", "123"));
+	const char *s = "123";
+
+	ASSERT_EQUAL_PTR(s, tlu_strallfrom(s, ""));
+	ASSERT_NULL(tlu_strallfrom("", ""));
+	ASSERT_NULL(tlu_strallfrom("", "123"));
 }
 
-UTEST(strbreak_seq)
+UTEST(strallfrom_seq)
 {
 	const uint MAX_SIZE = 512;
 	const uint MAX_OFFSET = 8;
@@ -45,8 +47,13 @@ UTEST(strbreak_seq)
 				utest_random_string(s, size + max(off1, off2));
 				s[max(off1, off2) + size] = '\0';
 
-				const void *real = tlu_strbreak(s + off1, s + off2);
-				const char *exp = strpbrk(s + off1, s + off2);
+				const void *real = tlu_strallfrom(s + off1, s + off2);
+				uint64 _exp = strspn(s + off1, s + off2);
+				const char *exp;
+				if (_exp == strlen(s + off1))
+					exp = NULL;
+				else
+					exp = s + off1 + _exp;
 				ASSERT_EQUAL_PTR(exp, real);
 
 				free(s);

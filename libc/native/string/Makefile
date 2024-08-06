@@ -1,6 +1,6 @@
 
 obj-libstring	=
-obj-libstring	+=	strbreak.o
+obj-libstring	+=	strallfrom.o
 obj-libstring	+=	strchr.o
 obj-libstring	+=	strcmp.o
 obj-libstring	+=	strcnt.o
@@ -9,8 +9,8 @@ obj-libstring	+=	strends.o
 obj-libstring	+=	streq.o
 obj-libstring	+=	strlen.o
 obj-libstring	+=	strncmp.o
+obj-libstring	+=	strnonefrom.o
 obj-libstring	+=	strrchr.o
-obj-libstring	+=	strspan.o
 obj-libstring	+=	strstarts.o
 obj-libstring	+=	strstr.o
 

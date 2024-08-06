@@ -25,21 +25,21 @@
 
 ### checklist
 
-| function  | status |
-|:--------- |:------:|
-| strlen    |    +   |
-| strcmp    |    +   |
-| strncmp   |    +   |
-| strchr    |    +   |
-| strrchr   |    +   |
-| strbreak  |    +   |
-| strspan   |    +   |
-| strstr    |    +   |
-| strcpy    |    +   |
-| strends   |    +   |
-| strstarts |    +   |
-| strcnt    |    +   |
-| streq     |    +   |
+| function    | status |
+|:----------- |:------:|
+| strlen      |    +   |
+| strcmp      |    +   |
+| strncmp     |    +   |
+| strchr      |    +   |
+| strrchr     |    +   |
+| strnonefrom |    +   |
+| strallfrom  |    +   |
+| strstr      |    +   |
+| strcpy      |    +   |
+| strends     |    +   |
+| strstarts   |    +   |
+| strcnt      |    +   |
+| streq       |    +   |
 
 ## character classifiction functions
 
