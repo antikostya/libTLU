@@ -46,6 +46,19 @@ void utest_ok(void)
 	fflush(stdout);
 }
 
+static uint nr_digits(int64 n)
+{
+	uint ans = 0;
+
+	if (n == 0)
+		return 1;
+	while (n != 0) {
+		n /= 10;
+		ans++;
+	}
+	return ans;
+}
+
 static void signal_handler(int sig)
 {
 	switch (sig) {
@@ -159,7 +172,7 @@ static void suite_run(struct __utest *suite, const char *name, const char **keep
 		if (setjmp(jump_buf))
 			continue;
 
-		printf("%s %u/%u: %s:", name, i, nr_tests, begin->name);
+		printf("%s %*u/%u: %s:", name, nr_digits(nr_tests), i, nr_tests, begin->name);
 		printf("%-*.s\t", (int)(longest_name - strlen(begin->name)), "");
 		fflush(stdout);
 
