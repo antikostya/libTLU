@@ -3,8 +3,8 @@
 #define CVECTOR_INTERNAL_H
 
 #include <container/cvector.h>
+#include <core/common.h>
 #include <core/compiler.h>
-#include <core/defs.h>
 #include <core/errno.h>
 #include <core/panic.h>
 #include <libc/mem.h>

@@ -1,6 +1,6 @@
 
 #include <core/color.h>
-#include <core/defs.h>
+#include <core/common.h>
 #include <core/types.h>
 #include <utest/internal.h>
 #include <utest/utest.h>

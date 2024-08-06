@@ -1,6 +1,6 @@
 
-#ifndef CORE_DEFS_H
-#define CORE_DEFS_H
+#ifndef CORE_COMMON_H
+#define CORE_COMMON_H
 
 #include <core/compiler.h>
 #include <core/types.h>
@@ -41,5 +41,5 @@
 #define ARG_OR(val, ...) __IF_EMPTY(__VA_ARGS__)(val) __VA_ARGS__
 #define ARG_OR_NULL(...) ARG_OR(0, __VA_ARGS__)
 
-#endif /* CORE_DEFS_H */
+#endif /* CORE_COMMON_H */
 

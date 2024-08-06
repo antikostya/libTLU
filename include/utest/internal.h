@@ -2,8 +2,8 @@
 #ifndef _UTEST_INTERNAL_H_
 #define _UTEST_INTERNAL_H_
 
+#include <core/common.h>
 #include <core/compiler.h>
-#include <core/defs.h>
 #include <core/types.h>
 
 struct __utest {

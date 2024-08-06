@@ -1,5 +1,5 @@
 
-#include <core/defs.h>
+#include <core/common.h>
 #include <libc/mem.h>
 #include <utest/utest.h>
 #include <utest/utils.h>
