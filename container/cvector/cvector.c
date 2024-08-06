@@ -199,7 +199,10 @@ void *__cvector_insert(void *vvptr, uint type_size, void *pos, cvector_insert_fl
 
 	check_magic(cvector);
 	if (unlikely(cvector_needs_expand(cvector->size, cvector->allocated))) {
+		struct cvector *vec;
 		uint64 new_alloc;
+		uint64 len;
+		void *new_pos;
 
 		if (unlikely(flags & CVECTOR_INSERT_NO_EXPAND))
 			return (void *)ENOMODIFY;
@@ -209,12 +212,35 @@ void *__cvector_insert(void *vvptr, uint type_size, void *pos, cvector_insert_fl
 		else
 			new_alloc = allocation_grid_upper(cvector->size);
 
-		cvector = reallocate(cvector, type_size, new_alloc);
-		if (unlikely(cvector == NULL))
-			return (void *)ENOMEM;
+		vec = malloc(new_alloc * type_size + sizeof(struct cvector));
+		if (unlikely(vec == NULL))
+			return NULL;
 
-		*vptr = cvector->data;
-		pos = cvector->data + idx * type_size;
+		/**
+		 *
+		 * before:
+		 *                          end - pos
+		 *                      <----------------->
+		 * [metadata][0][1] ... [pos] ... [end - 1]
+		 *   ^        ^           ^
+		 *   cvector  *vptr       inserting before here
+		 *
+		 * after:
+		 * [metadata][0][1] ... [pos][pos + 1] ... [end - 1]
+		 *                        ^
+		 *                        new entry
+		 */
+		tlu_memcpy(vec, cvector, pos - (void *)cvector);
+		new_pos = vec->data + idx * type_size;
+		len = (uint64)cvector->data + cvector->size * type_size - (uint64)pos;
+		tlu_memcpy(new_pos + type_size, pos, len);
+
+		vec->allocated = new_alloc;
+		vec->size++;
+		*vptr = vec->data;
+		free(cvector);
+
+		return new_pos;
 	}
 
 	if (cvector->size != idx)
@@ -230,28 +256,55 @@ void *__cvector_erase(void *vvptr, uint type_size, void *pos, cvector_erase_flag
 	void **vptr = vvptr;
 	struct cvector *cvector = cvector_entry(*vptr);
 	uint64 idx = (pos - *vptr) / type_size;
+	bool shrink = false;
 
 	check_magic(cvector);
 	check_range(cvector, idx);
 
-	if ((flags & CVECTOR_ERASE_NO_SHRINK) == 0 && cvector_needs_shrink(cvector->size, cvector->allocated)) {
-		cvector = reallocate(cvector, type_size, allocation_grid_lower(cvector->size));
-		if (unlikely(cvector == NULL))
-			return (void *)ENOMEM;
+	if (flags & CVECTOR_ERASE_NO_SHRINK)
+		shrink = false;
+	else if (flags & CVECTOR_ERASE_FORCE_SHRINK)
+		shrink = true;
+	else if (cvector_needs_shrink(cvector->size, cvector->allocated))
+		shrink = true;
 
-		*vptr = cvector->data;
-		pos = cvector->data + idx * type_size;
+	if (shrink) {
+		struct cvector *vec;
+		uint64 new_size = cvector->size - 1;
+		uint64 len;
+		void *new_pos;
+
+		vec = malloc(new_size * type_size + sizeof(struct cvector));
+		if (unlikely(vec == NULL))
+			return NULL;
+
+		/**
+		 *
+		 * before:
+		 *     pos - cvector          end - (pos + 1) = end - pos - 1
+		 * <------------------->      <-------------------->
+		 * [metadata][0][1] ... [pos][pos + 1] ... [end - 1]
+		 *   ^        ^           ^
+		 *   cvector  *vptr       removing value
+		 *
+		 * after:
+		 * [metadata][0][1] ... [pos + 1] ... [end - 1]
+		 */
+		tlu_memcpy(vec, cvector, pos - (void *)cvector);
+		new_pos = vec->data + idx * type_size;
+		len = (uint64)cvector->data + new_size * type_size - (uint64)pos;
+		tlu_memcpy(new_pos, pos + type_size, len);
+
+		vec->allocated = new_size;
+		vec->size--;
+		*vptr = vec->data;
+		free(cvector);
+
+		return new_pos;
 	}
 
 	cvector->size--;
 	tlu_memmove(pos, pos + type_size, (cvector->size - idx) * type_size);
-
-	if (flags & CVECTOR_ERASE_FORCE_SHRINK) {
-		__cvector_shrink(vvptr, type_size);
-		vptr = vvptr;
-		cvector = cvector_entry(*vptr);
-		pos = cvector->data + idx * type_size;
-	}
 
 	return pos;
 }

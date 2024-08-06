@@ -806,6 +806,40 @@ UTEST(cvector_insert3)
 	cvector_destroy(v);
 }
 
+UTEST(cvector_insert_ext)
+{
+	int *a = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
+	int *b = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
+	int *it;
+
+	it = cvector_insert(&a, cvector_end(a), 5, CVECTOR_INSERT_NO_EXPAND);
+	ASSERT_EQUAL_PTR((void *)ENOMODIFY, it);
+	it = cvector_insert(&b, cvector_end(b), 5, CVECTOR_INSERT_NO_EXPAND);
+	ASSERT_EQUAL_PTR((void *)ENOMODIFY, it);
+
+	cvector_destroy(a);
+	cvector_destroy(b);
+}
+
+UTEST(cvector_insert_ext2)
+{
+	int *v = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
+
+	ASSERT_EQUAL(1, *cvector_insert(&v, cvector_end(v), 1, CVECTOR_INSERT_EXPAND_EXACT_SIZE));
+	ASSERT_EQUAL(cvector_size(v), cvector_capacity(v));
+	ASSERT_CVECTOR(v, "1");
+
+	ASSERT_EQUAL(2, *cvector_insert(&v, cvector_end(v), 2, CVECTOR_INSERT_EXPAND_EXACT_SIZE));
+	ASSERT_EQUAL(cvector_size(v), cvector_capacity(v));
+	ASSERT_CVECTOR(v, "12");
+
+	ASSERT_EQUAL(3, *cvector_insert(&v, cvector_end(v), 3, CVECTOR_INSERT_EXPAND_EXACT_SIZE));
+	ASSERT_EQUAL(cvector_size(v), cvector_capacity(v));
+	ASSERT_CVECTOR(v, "123");
+
+	cvector_destroy(v);
+}
+
 UTEST(cvector_push_back)
 {
 	int *v = cvector_create(int, 0, CVECTOR_CREATE_EXACT_SIZE);
@@ -910,6 +944,37 @@ UTEST(cvector_erase2)
 	it = cvector_erase(&v, cvector_begin(v) + 3, 0);
 	ASSERT_EQUAL_PTR(cvector_begin(v) + 3, it);
 	ASSERT_CVECTOR(v, "12356");
+
+	cvector_destroy(v);
+}
+
+UTEST(cvector_erase_ext)
+{
+	int *v = cvector_create(int, 100, CVECTOR_CREATE_ONLY_PREALLOC);
+	int *it;
+	uint64 cap;
+
+	ASSERT_EQUAL(0, cvector_size(v));
+	cap = cvector_capacity(v);
+	ASSERT_GREATER_EQUAL(100, cap);
+
+	ASSERT_EQUAL(4, *cvector_insert(&v, cvector_end(v), 4, CVECTOR_INSERT_NO_EXPAND));
+	ASSERT_EQUAL(cap, cvector_capacity(v));
+	ASSERT_CVECTOR(v, "4");
+
+	ASSERT_EQUAL(5, *cvector_insert(&v, cvector_end(v), 5, CVECTOR_INSERT_NO_EXPAND));
+	ASSERT_EQUAL(cap, cvector_capacity(v));
+	ASSERT_CVECTOR(v, "45");
+
+	it = cvector_erase(&v, cvector_rbegin(v), CVECTOR_ERASE_NO_SHRINK);
+	ASSERT_EQUAL_PTR(it, cvector_end(v));
+	ASSERT_CVECTOR(v, "4");
+	ASSERT_EQUAL(cap, cvector_capacity(v));
+
+	it = cvector_erase(&v, cvector_rbegin(v), 0);
+	ASSERT_EQUAL_PTR(it, cvector_end(v));
+	ASSERT_CVECTOR(v, "");
+	ASSERT_LESS_EQUAL(cap, cvector_capacity(v));
 
 	cvector_destroy(v);
 }

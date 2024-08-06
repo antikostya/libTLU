@@ -2,8 +2,9 @@
 #ifndef CONTAINER_CVECTOR_H
 #define CONTAINER_CVECTOR_H
 
-#include <core/types.h>
 #include <core/compiler.h>
+#include <core/errno.h>
+#include <core/types.h>
 
 typedef enum {
 	CVECTOR_CREATE_DEFAULT		= 0,
@@ -123,7 +124,7 @@ uint64 cvector_capacity(const void *vector);
 	({										\
 		__cvector_same_type(*(vptr), iter);					\
 		typeof(iter) ret = __cvector_insert(vptr, sizeof(*(iter)), iter, flags);\
-		if (ret) {								\
+		if (!PTR_ERR(ret)) {								\
 			*ret = (value);							\
 		}									\
 		ret;									\
