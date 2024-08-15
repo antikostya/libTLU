@@ -1,7 +1,7 @@
 
 #include <libc/string.h>
 
-char *tlu_strrchr(const char *s, uint8 c)
+const char *tlu_strrchr(const char *s, uint8 c)
 {
 	const char *ans = NULL;
 
@@ -12,7 +12,7 @@ char *tlu_strrchr(const char *s, uint8 c)
 	}
 
 	if (c == '\0')
-		return (char *)s;
-	return (char *)ans;
+		return s;
+	return ans;
 }
 

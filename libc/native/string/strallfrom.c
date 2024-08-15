@@ -1,11 +1,11 @@
 
 #include <libc/string.h>
 
-char *tlu_strallfrom(const char *s, const char *keepset)
+const char *tlu_strallfrom(const char *s, const char *accept)
 {
 	while (*s) {
-		if (tlu_strchr(keepset, *s) == NULL) {
-			return (char *)s;
+		if (tlu_strchr(accept, *s) == NULL) {
+			return s;
 		}
 		s++;
 	}

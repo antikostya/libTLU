@@ -1,7 +1,7 @@
 
 # libc implementation
 
-# mem functions
+# memory functions
 
 | table of contents   |
 |:------------------- |
@@ -11,6 +11,7 @@
 | tlu_memcnt          |
 | tlu_memcpy          |
 | tlu_memeq           |
+| tlu_memmem (TODO)   |
 | tlu_memmove         |
 | tlu_memnchr         |
 | tlu_memnrchr        |
@@ -233,7 +234,7 @@
 > ```c
 > #include <libc/mem.h>
 >
-> void tlu_memzero(void *ptr, uint64 size);
+> void tlu_memzero_secure(void *ptr, uint64 size);
 > ```
 > ### DESCRIPTION
 > The `tlu_memzero_secure()` function fills the first `size` bytes of the memory area pointed to by `ptr` with zero bytes. It differs from `tlu_memzero()` in that it guarantees that compiler optimizations will not remove the erase operation if the compiler deduces that the operation is *"unnecessary"*.
@@ -241,38 +242,117 @@
 > none
 
 
-## string functions
 
-### checklist
 
-| function    | status |
-|:----------- |:------:|
-| strlen      |    +   |
-| strcmp      |    +   |
-| strncmp     |    +   |
-| strchr      |    +   |
-| strrchr     |    +   |
-| strnonefrom |    +   |
-| strallfrom  |    +   |
-| strstr      |    +   |
-| strcpy      |    +   |
-| strends     |    +   |
-| strstarts   |    +   |
-| strcnt      |    +   |
-| streq       |    +   |
+# string functions
 
-## character classifiction functions
+| table of contents      |
+|:---------------------- |
+| tlu_strallfrom        +|
+| tlu_strcasecmp (TODO)  |
+| tlu_strcasestr (TODO)  |
+| tlu_strchr            +|
+| tlu_strcmp            +|
+| tlu_strcnt             |
+| tlu_strcpy             |
+| tlu_strends            |
+| tlu_streq              |
+| tlu_strlen             |
+| tlu_strncasecmp (TODO) |
+| tlu_strncmp            |
+| tlu_strnonefrom        |
+| tlu_strrchr            |
+| tlu_strstarts          |
+| tlu_strstr             |
 
-| function | status |
-|:-------- |:------:|
-| isalnum  |        |
-| isalpha  |        |
-| isdigit  |        |
-| ishex    |        |
-| islower  |        |
-| isprint  |        |
-| ispunct  |        |
-| isspace  |        |
-| isupper  |        |
-| tolower  |        |
-| toupper  |        |
+
+## tlu_strallfrom
+> ### NAME
+> `tlu_strallfrom` - search a string for any of disallowed characters
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> const char *tlu_strallfrom(const char *s, const char *accept);
+> ```
+> ### DESCRIPTION
+> The `tlu_strallfrom()` function locates the first occurrence in the string `s` of any of the bytes not in the string `accept`. In other words it locates the next character after segment of `s` which consists entirely of bytes in `accept`.
+> ### RETURN VALUE
+> The `tlu_strallfrom()` function returns a pointer to the byte in `s` that not matches one of the bytes in `accept`, or **NULL** if no such byte is found.
+
+
+## tlu_strchr
+> ### NAME
+> `tlu_strchr` - locate character in string
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> const char *tlu_strchr(const char *s, uint8 c);
+> ```
+> ### DESCRIPTION
+> The `tlu_strchr()` function returns a pointer to the first occurrence of the character `c` in the string `s`.
+> ### RETURN VALUE
+> The `tlu_strchr()` functions return a pointer to the matched character or **NULL** if the character is not found. The terminating null byte is considered part of the string, so that if `c` is specified as **\0**, these functions return a pointer to the terminator.
+
+
+## tlu_strcmp
+> ### NAME
+> `tlu_strcmp` - compare two strings
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> const char *tlu_strcmp(const char *s1, const char *s2);
+> ```
+> ### DESCRIPTION
+> The `tlu_strcmp()` function compares the two strings `s1` and `s2`. The locale is not taken into account. The comparison is done using unsigned characters.
+>
+> strcmp() returns an integer indicating the result of the comparison, as follows:
+> - **zero**, if the `s1` and `s2` are equal
+> - a **negative value** if `s1` is less than `s2`
+> - a **positive value** if `s1` is greater than `s2`
+> ### RETURN VALUE
+> The `tlu_strcmp()` function return an integer less than, equal to, or greater than **zero** if `s1` is found, respectively, to be less than, to match, or be greater than `s2`.
+
+# character classifiction functions
+
+| table of contents  |
+|:------------------ |
+| isalnum            |
+| isalpha            |
+| isdigit            |
+| isdigit_base (TOD) |
+| ishex              |
+| islower            |
+| isoct (TODO)       |
+| isprint            |
+| ispunct            |
+| isspace            |
+| isupper            |
+| tolower            |
+| toupper            |
+
+# lexixal functions (TODO)
+
+```c
+int tlu_int2str(int64 n, char *s, uint base);
+errors = {
+	EINVAL // invalid base
+}
+int tlu_uint2str(uint64 n, char *s, uint base);
+errors = // same for tlu_int2str
+int64 tlu_str2int(const char *ptr, uint base, const char **end, int *err);
+errors = {
+	EINVAL // invalid base or no number in @ptr
+	EOVERFLOW // number overflow
+	EUNDERFLOW // number underflow
+}
+uint64 tlu_str2uint(const char *ptr, uint base const char **end, int *err);
+errors = // same as tlu_str2int, but without EUNDERFLOW
+
+void tlu_itoa(int64 n, char *dst);
+// alias for tlu_int2str(n, dst, 10)
+int64 tlu_atoi(char *s);
+// alias for tlu_str2int(s, 10, NULL, NULL)
+```

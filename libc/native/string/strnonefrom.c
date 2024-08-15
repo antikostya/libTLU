@@ -1,11 +1,11 @@
 
 #include <libc/string.h>
 
-char *tlu_strnonefrom(const char *s, const char *breakset)
+const char *tlu_strnonefrom(const char *s, const char *reject)
 {
 	while (*s) {
-		if (tlu_strchr(breakset, *s) != NULL) {
-			return (char *)s;
+		if (tlu_strchr(reject, *s) != NULL) {
+			return s;
 		}
 		s++;
 	}
