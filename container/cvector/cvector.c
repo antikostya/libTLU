@@ -214,7 +214,7 @@ void *__cvector_insert(void *vvptr, uint type_size, void *pos, cvector_insert_fl
 
 		vec = malloc(new_alloc * type_size + sizeof(struct cvector));
 		if (unlikely(vec == NULL))
-			return NULL;
+			return (void *)ENOMEM;
 
 		/**
 		 *
@@ -307,6 +307,50 @@ void *__cvector_erase(void *vvptr, uint type_size, void *pos, cvector_erase_flag
 	tlu_memmove(pos, pos + type_size, (cvector->size - idx) * type_size);
 
 	return pos;
+}
+
+int __cvector_extend(void *vvptr, void *vextend, uint type_size, cvector_extend_flags_t flags)
+{
+	void **vptr = vvptr;
+	struct cvector *orig = cvector_entry(*vptr);
+	struct cvector *extend = cvector_entry(vextend);
+
+	check_magic(orig);
+	check_magic(extend);
+
+	if (orig->size + extend->size > orig->allocated) {
+		uint64 new_alloc;
+		uint64 move_size;
+		struct cvector *vec;
+
+		if (unlikely(flags & CVECTOR_EXTEND_NO_EXPAND))
+			return ENOMODIFY;
+
+		if (flags & CVECTOR_EXTEND_EXPAND_EXACT_SIZE)
+			new_alloc = orig->size + extend->size;
+		else
+			new_alloc = allocation_grid_upper(orig->size + extend->size);
+
+		vec = malloc(new_alloc * type_size + sizeof(struct cvector));
+		if (unlikely(vec == NULL))
+			return ENOMEM;
+
+		move_size = orig->size * type_size + sizeof(struct cvector);
+		tlu_memcpy(vec, orig, move_size);
+		tlu_memcpy((void *)vec + move_size, extend->data, extend->size * type_size);
+
+		vec->size = orig->size + extend->size;
+		vec->allocated = new_alloc;
+		*vptr = vec->data;
+		free(orig);
+
+		return 0;
+	}
+
+	tlu_memcpy(orig->data + orig->size * type_size, extend->data, extend->size * type_size);
+	orig->size += extend->size;
+
+	return 0;
 }
 
 int __cvector_shrink(void *vvptr, uint type_size)

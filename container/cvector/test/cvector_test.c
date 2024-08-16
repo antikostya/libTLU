@@ -1059,6 +1059,54 @@ UTEST(cvector_pop_front2)
 	cvector_destroy(v);
 }
 
+UTEST(cvector_extend)
+{
+	int *a = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
+	int *b = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {4, 5, 6});
+
+	ASSERT_ZERO(cvector_extend(&a, b, CVECTOR_EXTEND_EXPAND_EXACT_SIZE));
+	ASSERT_CVECTOR(a, "123456");
+
+	cvector_destroy(a);
+	cvector_destroy(b);
+}
+
+UTEST(cvector_extend2)
+{
+	int16 *a = cvector_create(int16, 4, CVECTOR_CREATE_ONLY_PREALLOC);
+	int16 *b = cvector_create_from_list(int16, 0, {1, 2, 3, 4});
+
+	ASSERT_ZERO(cvector_extend(&a, b, CVECTOR_EXTEND_NO_EXPAND));
+	ASSERT_CVECTOR(a, "1234");
+
+	cvector_destroy(a);
+	cvector_destroy(b);
+}
+
+UTEST(cvector_extend3)
+{
+	int64 *a = cvector_create(int64, 0, CVECTOR_CREATE_EXACT_SIZE);
+	int64 *b = cvector_create(int64, 0, CVECTOR_CREATE_EXACT_SIZE);
+
+	ASSERT_ZERO(cvector_extend(&a, b, 0));
+	ASSERT_CVECTOR(a, "");
+
+	cvector_destroy(a);
+	cvector_destroy(b);
+}
+
+UTEST(cvector_extend4)
+{
+	int *a = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {1, 2, 3});
+	int *b = cvector_create_from_list(int, CVECTOR_CREATE_FROM_EXACT_SIZE, {4, 5, 6});
+
+	ASSERT_EQUAL(ENOMODIFY, cvector_extend(&a, b, CVECTOR_EXTEND_NO_EXPAND));
+	ASSERT_CVECTOR(a, "123");
+
+	cvector_destroy(a);
+	cvector_destroy(b);
+}
+
 int main(int argc, const char **argv)
 {
 	(void)argc;
