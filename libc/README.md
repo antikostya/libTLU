@@ -95,6 +95,7 @@
 > ### RETURN VALUE
 > The `tlu_memchr()` function return number of instances of `c` in the given memory area.
 
+
 ## tlu_memcpy
 > ### NAME
 > `tlu_memcpy` - copy memory area
@@ -253,9 +254,10 @@
 | tlu_strcasestr (TODO)  |
 | tlu_strchr            +|
 | tlu_strcmp            +|
-| tlu_strcnt             |
-| tlu_strcpy             |
-| tlu_strends            |
+| tlu_strcnt            +|
+| tlu_strcpy            +|
+| tlu_strncpy (TODO)     |
+| tlu_strends           +|
 | tlu_streq              |
 | tlu_strlen             |
 | tlu_strncasecmp (TODO) |
@@ -293,7 +295,7 @@
 > ### DESCRIPTION
 > The `tlu_strchr()` function returns a pointer to the first occurrence of the character `c` in the string `s`.
 > ### RETURN VALUE
-> The `tlu_strchr()` functions return a pointer to the matched character or **NULL** if the character is not found. The terminating null byte is considered part of the string, so that if `c` is specified as **\0**, these functions return a pointer to the terminator.
+> The `tlu_strchr()` functions return a pointer to the matched character or **NULL** if the character is not found. The terminating null byte is considered part of the string, so that if `c` is specified as **'\0'**, this function return a pointer to the terminator.
 
 
 ## tlu_strcmp
@@ -314,6 +316,76 @@
 > - a **positive value** if `s1` is greater than `s2`
 > ### RETURN VALUE
 > The `tlu_strcmp()` function return an integer less than, equal to, or greater than **zero** if `s1` is found, respectively, to be less than, to match, or be greater than `s2`.
+
+
+## tlu_strcnt
+> ### NAME
+> `tlu_strcnt` - count srting character
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> uint64 tlu_strnt(const char *s, uint8 c);
+> ```
+> ### DESCRIPTION
+> The `tlu_strnt()` function count number instances of character `c` in the string `s`.
+> ### RETURN VALUE
+> The `tlu_strnt()` function return number of instances of `c` in the given string.  The terminating null byte is considered part of the string, so that if `c` is specified as **'\0'**, this function return **1**.
+
+
+## tlu_strcpy
+> ### NAME
+> `tlu_strcpy` - copy a string
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> void tlu_strcpy(const char *s1, const char *s2);
+> ```
+> ### DESCRIPTION
+> The `tlu_strcpy()` function copies the string pointed to by `src`, including the terminating null byte **'\0'**, to the buffer pointed to by `est`. The strings may not overlap, and the destination string dest must be large enough to receive the copy. ***Beware of buffer overruns!***.
+> ### RETURN VALUE
+> none
+
+
+## tlu_strends
+> ### NAME
+> `tlu_strends` - check string end
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> void tlu_strends(const char *str, const char *pattern);
+> ```
+> ### DESCRIPTION
+> The `tlu_strends()` function checks if suffix of string `str` of length equal to length of string `pattern` is equal to characters in string `pattern`.
+> ### RETURN VALUE
+> The `tlu_strends()` function retuns **true** if last **n** characters (**n** equal to length of string `pattern`) of string `str` are equal to string `pattern`
+
+
+
+
+
+
+
+
+
+## tlu_strlen
+> ### NAME
+> `tlu_strlen` - calculate the length of a string
+> ### SYNOPSIS
+> ```c
+> #include <libc/string.h>
+>
+> uint64 tlu_strlen(const char *s);
+> ```
+> ### DESCRIPTION
+> The `tlu_strlen()` function calculates the length of the string pointed to by `s`, excluding the terminating null byte **'\0'**.
+> ### RETURN VALUE
+> The `tlu_strlen()` function returns the number of bytes in the string pointed to by `s`.
+
+
+
 
 # character classifiction functions
 
