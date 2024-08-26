@@ -66,109 +66,220 @@ type *cvector_copy(type *vector)
 
 
 
---------------------------------------------------------------------------------
 ```c
-// =============================================================================
-void cvector_init(void); /* done */
-void cvector_fini(void); /* done */
+// *****************************************************************************
+// ****************************** BASIC INTERFACE ******************************
+// *****************************************************************************
 
-// =============================================================================
-type *cvector_create(type, size, flags); /* done */
-flags = {
-	CVECTOR_CREATE_EXACT_SIZE
-	CVECTOR_CREATE_ZERO
-	CVECTOR_CREATE_ONLY_PREALLOC
-};
+// -----------------------------------------------------------------------------
+// macro
+#define CVECTOR_CAPACITY_AUTO
+#define CVECTOR_OUT_OF_RANGE
 
-void cvector_destroy(type *vector); /* done */
+// -----------------------------------------------------------------------------
+// external
+extern void *cvectorAllocate(uint64 size); /* cvector external allocator */
+extern void cvectorDealloate(void * ptr); /* cvector external deallocator */
+extern void cvectorPanic(int errorcode); /* cvector external exception handler */
 
-type *cvector_copy(const type *vector, flags) /* done */
-flags = {
-	CVECTOR_COPY_EXACT_SIZE
-};
+// -----------------------------------------------------------------------------
+// initialization
+void cvectorInit(void);
+void cvectorFini(void);
 
-type *cvector_create_from(flags, type *begin, type *end) /* done */
-flags = {
-	CVECTOR_CREATE_FROM_EXACT_SIZE
-};
-type *cvector_create_from_list(type, flags, {initializer_list}) /* done */
-flags = /* same from cvector_create_from */
+// -----------------------------------------------------------------------------
+// construction
+type *cvectorCreate(type, uint64 size, uint64 capacity, type fill);
+/* capacity: number,
+             CVECTOR_CAPACITY_AUTO: set capacity automatically
+   return: pointer
+           EINVAL: capacity < size
+           ENOMEM: allocation failure
+ */
 
-// =============================================================================
-type = cvector[index]; /* done */
+void cvectorDestroy(type *vector);
 
-type cvector_at(const type *vector, idx); /* done */
-type cvector_rat(const type *vector, idx) /* done */
-type cvector_front(const type *vector); /* done */
-type cvector_back(const type *vector); /* done */
+type *cvectorCopy(const type *vector, uint64 capacity);
+/* capacity: number
+             CVECTOR_CAPACITY_AUTO: set copied vector capacity automatically
+   return: pointer
+           EINVAL: capacity < size
+           ENOMEM: allocation failure
+ */
 
-// =============================================================================
-bool cvector_empty(const type *vector); /* done */
-uint64 cvector_size(const type *vector); /* done */
-uint64 cvector_capacity(const type *vector); /* done */
+// -----------------------------------------------------------------------------
+// element access
+type = cvector[index]; /* noexcept */
 
-// =============================================================================
-#define cvector_for_each(type *vector, type val) /* done */
-#define cvector_for_each_reverse(type *cvector, type val) /* done */
+type cvectorAt(const type *vector, idx); /* throw CVECTOR_OUT_OF_RANGE */
+type cvectorFront(const type *vector); /* throw CVECTOR_OUT_OF_RANGE */
+type cvectorBack(const type *vector); /* throw CVECTOR_OUT_OF_RANGE */
 
-type *cvector_find(const type *vector, type val, cmp); /* done */
-type *cvector_rfind(const type *vector, type val, cmp); /* done */
+// -----------------------------------------------------------------------------
+// capacity
+bool cvectorEmpty(const type *vector);
+uint64 cvectorSize(const type *vector);
+uint64 cvectorCapacity(const type *vector);
 
-bool cvector_contains(const type *vector, type val, cmp); /* done */
-uint64 cvector_count(const type *vector, type val, cmp); /* done */
+// -----------------------------------------------------------------------------
+// modifiers
+type *cvectorInsert(type *vector, type *pos, type value);
+/* return: pointer to inserted entry
+           ENOSPACE: no left capacity to insert new value
+ */
 
-// =============================================================================
-type *cvector_insert(type **vector, type *pos, type value, flags); /* done */
-flags = {
-	CVECTOR_INSERT_NO_EXPAND
-	CVECTOR_INSERT_EXPAND_EXACT_SIZE
-};
-type *cvector_push_back(type **vector, type value, flags); /* done */
-flags = /* same from cvector_insert */
-type *cvector_push_front(type **vector, type value, flags); /* done */
-flags = /* same from cvector_insert */
+type *cvectorPushBack(type *vector, type value);
+/* return: pointer to inserted entry
+           ENOSPACE: no left capacity to insert new value
+ */
 
-type *cvector_erase(type **vector, type *pos, flaga);
-flags = {
-	CVECTOR_ERASE_FORCE_SHRINK
-	CVECTOR_ERASE_NO_SHRINK
-};
-type *cvector_pop_front(type **vector);
-flags = /* same from cvector_erase */
-type *cvector_pop_back(type **vector);
-flags = /* same from cvector_erase */
+type *cvectorPushFront(type *vector, type value);
+/* return: pointer to inserted entry
+           ENOSPACE: no left capacity to insert new value
+ */
 
-int cvector_extend(type **vector, type *other, flags);
-flags = {
-	CVECTOR_EXTEND_EXACT_SIZE,
-	CVECTOR_EXTEND_NO_EXPAND,
-}
+void cvectorErase(type *vector, type *pos);
+void cvectorPopBack(type *vector, type *pos);
+void cvectorPopFront(type *vector, type *pos);
 
-// =============================================================================
-int cvector_shrink(type **vector);
-int cvector_resize(type **vector, uint64 size, flags);
-flags = {
-	CVECTOR_RESIZE_EXACT_SIZE,
-	CVECTOR_RESIZE_NO_EXPAND,
-	CVECTOR_RESIZE_NO_SHRINK,
-	CVECTOR_RESIZE_FORCE_SHRINK,
-};
-int cvector_reserve(type **vector, uint64 size, flags);
-flags = {
+// -----------------------------------------------------------------------------
+// resizing
+int cvectorExpand(type **vector, uint64 capacity);
+/* capacity: number: force reallocate vector to chosen capacity, size remains unchanged
+             CVECTOR_CAPACITY_AUTO: check if vector has empty space to at least
+               one extra entry, and if not - reallocates vector with automatically
+               chosen capacity
+   return: 0: ok
+           EINVAL: capacity < current size
+           ENOMEM: allocation failure
+ */
 
-};
-int cvector_resize_ext(type **vectirm uint64 size, uint64 capacity);
+int cvectorShink(type **vector);
+/* return: 0: ok
+           ENOMEM: allocation failure
+ */
 
-// =============================================================================
-type *cvector_begin(const type *vector); /* done */
-type *cvector_end(const type *vector); /* done */
-const type *cvector_cbegin(type *vector); /* skipped */
-const type *cvector_cend(type *vector); /* skipped */
+// -----------------------------------------------------------------------------
+// iterators
+type *cvectorBegin(const type *vector);
+type *cvectorEnd(const type *vector);
 
-type *cvector_rbegin(const type *vector); /* begin */
-type *cvector_rend(const type *vector); /* begin */
-const type *cvector_crbegin(const type *vector); /* skipped */
-const type *cvector_crend(const type *vector); /* skipped */
 
-// =============================================================================
+// *****************************************************************************
+// **************************** EXTENDED INTERFACE *****************************
+// *****************************************************************************
+
+// -----------------------------------------------------------------------------
+// construction
+type *cvectorCreateFrom(const type *begin, const type *end, uint64 capacity);
+/* capacity: number
+             CVECTOR_CAPACITY_AUTO: set created vector capacity automatically
+   return: pointer
+           EINVAL: capacity < (end - begin)
+           ENOMEM: allocation failure
+ */
+
+type *cvectorCreateFromList(type, uint64 capacity, {initializer_list});
+/* capacity: number
+             CVECTOR_CAPACITY_AUTO: set created vector capacity automatically
+   return: pointer
+           EINVAL: capacity < ARRAY_SIZE(initializer_list)
+           ENOMEM: allocation failure
+*/
+
+// -----------------------------------------------------------------------------
+// element access
+type cvectorRat(const type *vector, idx); /* throw CVECTOR_OUT_OF_RANGE */
+
+// -----------------------------------------------------------------------------
+// modifiers
+type *cvectorInsertFrom(type *vector, type *pos, const type *begin, const type *end); /* maybe */
+/* return: pointer to first inserted entry
+           ENOSPACE: no left capacity to insert new values
+ */
+
+void cvectorEraseFrom(type *vector, type *start, type *end);
+
+type *cvectorExtend(type *vector, type *other);
+/* return: pointer to first inserted entry
+           ENOSPACE: no left capacity to insert new values
+ */
+
+// -----------------------------------------------------------------------------
+// resizing
+int cvectorResize(type *vector, uint64 size, uint64 capacity);
+/* size: new size of vector, if size > current size - values of new elements will
+         be zeroed; if size < current size - extra elements will be remoevd
+         from vector
+   capacity: number: vector will be forced to reallocate to this capacity
+             CVECTOR_CAPACITY_AUTO: set capacity automatically, if possible - do
+             not reallocate vector
+ */
+
+// -----------------------------------------------------------------------------
+// iterators
+type *cvectorRbegin(const type *vector);
+type *cvectorRend(const type *vector);
+
+// -----------------------------------------------------------------------------
+// traverse
+typedef int (*cmp_t)(type a, type b); /* uses values, not pointers */
+
+#define cvectorForEach(type *vector, type val) {} /* for loop */
+#define cvectorForEachRev(type *cvector, type val) {} /* reverse for loop */
+
+// -----------------------------------------------------------------------------
+// lookups
+type *cvectorFind(const type *vector, type val, cmp_t cmp);
+/* return: pointer to first occurrence of @val
+           NULL: if val not foud
+ */
+
+type *cvectorRfind(const type *vector, type val, cmp_t cmp);
+/* return: pointer to last occurrence of @val
+           NULL: if val not found
+ */
+
+bool cvectorContains(const type *vector, type val, cmp_t cmp);
+uint64 cvectorCount(const type *vector, type val, cmp_t cmp);
+
+int cvectorCompare(const type *v1, const type *v2, cmp_t cmp);
+/* return 0: if vectors @v1 and @v2 are equal
+          cmp(v1[i], v2[i]): if cmp(v1[i], v2[i]) != 0
+ */
+
+bool cvectorEqual(const type *v1, const type *v2, cmp_t cmp);
+/* return: true: if vector @v1 and @v2 are equal
+           false: otherwise
+ */
+
+uint64 cvectorRemoveIf(type **vector, cmp_t cmp);
+/* return: number of removed elements */
+
+
+// *****************************************************************************
+// ******************************* FUTURE DRAFT ********************************
+// *****************************************************************************
+
+// -----------------------------------------------------------------------------
+// construction
+int cvectorAssign(type **vector, type *begin, type *end);
+int cvectorClear(type **vector, flags);
+
+// -----------------------------------------------------------------------------
+// iterators
+const type *cvectorCbegin(type *vector);
+const type *cvectorCend(type *vector);
+
+const type *cvectorCRbegin(const type *vector);
+const type *cvectorCRend(const type *vector);
+
+void cvectorReverse(type *vector); /* maybe */
+void cvectorSort(type *vector); /* maybe */
+
+// -----------------------------------------------------------------------------
+// lookups
+type *cvectorFindIn(const type *begin, const type *end, type val, cmp_t cmp); /* maybe */
+type *cvectorRfindIn(const type *begin, const type *end, type type val, cmp_t cmp); /* maybe */
+
 ```
