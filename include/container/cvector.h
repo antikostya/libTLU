@@ -6,176 +6,126 @@
 #include <core/errno.h>
 #include <core/types.h>
 
-typedef enum {
-	CVECTOR_CREATE_DEFAULT		= 0,
-	CVECTOR_CREATE_EXACT_SIZE	= 1,
-	CVECTOR_CREATE_ZERO		= 2,
-	CVECTOR_CREATE_ONLY_PREALLOC	= 4,
-} cvector_create_flags_t;
+// -----------------------------------------------------------------------------
+// macro
+#define CVECTOR_CAPACITY_AUTO (uint64)-1
 
-typedef enum {
-	CVECTOR_COPY_DEFAULT		= 0,
-	CVECTOR_COPY_EXACT_SIZE		= 1,
-	CVECTOR_COPY_EMPTY		= 8,
-} cvector_copy_flags_t;
+enum {
+	CVECTOR_PANIC_INVALID_POINTER = 1,
+	CVECTOR_PANIC_OUT_OF_RANGE = 2,
+};
 
-typedef enum {
-	CVECTOR_CREATE_FROM_DEFAULT	= 0,
-	CVECTOR_CREATE_FROM_EXACT_SIZE	= 1,
-} cvector_create_from_flags_t;
+// -----------------------------------------------------------------------------
+// external
+extern void *cvector_allocate(uint64 size);
+extern void cvector_deallocate(void *ptr);
+extern __noret void cvector_panic(int errorcode);
 
-typedef enum {
-	CVECTOR_INSERT_DEFAULT		= 0,
-	CVECTOR_INSERT_NO_EXPAND	= 8,
-	CVECTOR_INSERT_EXPAND_EXACT_SIZE= 16,
-} cvector_insert_flags_t;
-
-typedef enum {
-	CVECTOR_ERASE_DEFAULT		= 0,
-	CVECTOR_ERASE_FORCE_SHRINK	= 32,
-	CVECTOR_ERASE_NO_SHRINK		= 64,
-} cvector_erase_flags_t;
-
-typedef enum {
-	CVECTOR_EXTEND_EXPAND_EXACT_SIZE= 16,
-	CVECTOR_EXTEND_NO_EXPAND	= 8,
-} cvector_extend_flags_t;
-
-// ====================================================================================================================
+// -----------------------------------------------------------------------------
+// initialization
 void cvector_init(void);
 void cvector_fini(void);
 
-// ====================================================================================================================
-#define cvector_create(type, size, flags) (type *)__cvector_create(sizeof(type), size, flags)
+// -----------------------------------------------------------------------------
+// construction
+#define cvector_create(type, size, capacity, fill) __cvector_create(type, size, capacity, fill)
 void cvector_destroy(void *vector);
 
-#define cvector_copy(other, flags) (typeof(other))__cvector_copy(other, sizeof(*(other)), flags)
-#define cvector_create_from(begin, end, flags)							\
-	({											\
-		__cvector_same_type(begin, end);						\
-		(typeof(*(begin)) *)__cvector_create_from(begin, end, sizeof(*(begin)), flags);	\
-	})
-#define cvector_create_from_list(type, flags, ...)					\
-	({											\
-		type list[] = __VA_ARGS__;			\
-		uint64 size = ARRAY_SIZE(list);					\
-		(type *)__cvector_create_from(list, list + size, sizeof(type), flags);	\
-	})
+#define cvector_copy(other, capacity) __cvector_copy(other, capacity)
 
-// ====================================================================================================================
-#define cvector_at(vector, idx) (*(typeof(vector))__cvector_at(vector, idx, (vector) + (idx)))
-#define cvector_rat(vector, idx) cvector_at(vector, cvector_size(vector) - (idx) - 1)
-#define cvector_front(vector) cvector_at(vector, 0)
-#define cvector_back(vector) cvector_rat(vector, 0)
+// -----------------------------------------------------------------------------
+// element access
+#define cvector_at(vector, idx) __cvector_at(vector, idx)
+#define __cvector_rat(vector, idx) __cvector_at(vector, cvector_size(vector) - idx - 1)
 
-// ====================================================================================================================
-bool cvector_empty(const void *vector);
+#define cvector_front(vector) __cvector_at(vector, 0)
+#define cvector_back(vector) __cvector_rat(vector, 0)
+
+// -----------------------------------------------------------------------------
+// capacity
 uint64 cvector_size(const void *vector);
+#define cvector_empty(vector) (cvector_size(vector) == 0)
 uint64 cvector_capacity(const void *vector);
 
-// ====================================================================================================================
-#define cvector_for_each(vector, iter) \
-	for ((iter) = cvector_begin(vector); (iter) != cvector_end(vector); (iter)++)
+// -----------------------------------------------------------------------------
+// modifiers
+#define cvector_insert(vector, pos, value) __cvector_insert(vector, pos, value)
+#define cvector_push_back(vector, value) __cvector_push_back(vector, value)
+#define cvector_push_front(vector, value) __cvector_push_front(vector, value)
 
-#define cvector_for_each_reverse(vector, iter) \
-	for ((iter) = cvector_rbegin(vector); (iter) != cvector_rend(vector); (iter)--)
+#define cvector_erase(vector, pos) __cvector_erase(vector, pos)
+#define cvector_pop_back(vector) __cvector_erase(vector, cvector_rbegin(vector))
+#define cvector_pop_front(vector) __cvector_erase(vector, cvector_begin(vector))
 
-#define cvector_find(vector, value, cmp)				\
-	({								\
-		typeof(*(vector)) *res = NULL;				\
-		typeof(*(vector)) *iter;				\
-		typeof(*(vector)) _value = value;			\
-		cvector_for_each(vector, iter) {			\
-			if (!cmp(*(iter), _value)) {			\
-				res = iter;				\
-				break;					\
-			}						\
-		}							\
-		res;							\
-	})
+// -----------------------------------------------------------------------------
+// resizing
+#define cvector_expand(pvector, capacity) __cvector_expand(pvector, sizeof(**(pvector)), capacity)
+#define cvector_shrink(pvector) __cvector_expand(pvector, sizeof(**(pvector)), cvector_size(*(pvector)))
 
-#define cvector_rfind(vector, value, cmp)				\
-	({								\
-		typeof(*(vector)) *res = NULL;				\
-		typeof(*(vector)) *iter;				\
-		typeof(*(vector)) _value = value;			\
-		cvector_for_each_reverse(vector, iter) {		\
-			if (!cmp(*(iter), _value)) {			\
-				res = iter;				\
-				break;					\
-			}						\
-		}							\
-		res;							\
-	})
+// -----------------------------------------------------------------------------
+// iterators
+#define cvector_begin(vector) (vector)
+#define cvector_end(vector) ((vector) + cvector_size(vector))
 
-#define cvector_contains(vector, value, cmp) (cvector_find(vector, value, cmp) != NULL)
+#define cvector_rbegin(vector) ((vector) + cvector_size(vector) - 1)
+#define cvector_rend(vector) ((vector) - 1)
 
-#define cvector_count(vector, value, cmp)				\
-	({								\
-	 	uint64 res = 0;						\
-		typeof(*(vector)) *iter;				\
-		typeof(*(vector)) _value = value;			\
-		cvector_for_each(vector, iter) {			\
-			if (!cmp(*(iter), _value)) {			\
-				res++;					\
-			}						\
-		}							\
-		res;							\
-	})
+// -----------------------------------------------------------------------------
+// traverse
+#define cvector_for_each(vector, iter) __cvector_for_each(vector, iter)
 
-
-// ====================================================================================================================
-#define cvector_insert(vptr, iter, value, flags)					\
+// ============================================================================
+// internal macros
+#define __cvector_create(type, size, capacity, fill)					\
 	({										\
-		__cvector_same_type(*(vptr), iter);					\
-		typeof(iter) ret = __cvector_insert(vptr, sizeof(*(iter)), iter, flags);\
-		if (!PTR_ERR(ret)) {								\
+		type *vec = __cvector_create_impl(sizeof(type), size, capacity);	\
+		type *iter;								\
+		if (likely(!PTR_ERR(vec))) {						\
+			cvector_for_each(vec, iter) {					\
+				*iter = (typeof(*iter))fill;				\
+			}								\
+		}									\
+		vec;									\
+	})
+
+#define __cvector_copy(other, capacity) \
+	(typeof(other))__cvector_copy_impl(other, sizeof(*(other)), capacity)
+
+#define __cvector_at(vector, idx) *(typeof(vector))__cvector_at_impl(vector, idx, (vector) + idx)
+
+#define __cvector_insert(vector, pos, value)						\
+	({										\
+		assert_same_ptr_type(vector, pos);					\
+		typeof(pos) ret = __cvector_insert_impl(vector, sizeof(*(vector)), pos);\
+		if (likely(!PTR_ERR(ret))) {						\
 			*ret = (value);							\
 		}									\
 		ret;									\
 	})
-#define cvector_push_front(vptr, value, flags) cvector_insert(vptr, cvector_begin(*(vptr)), value, flags)
-#define cvector_push_back(vptr, value, flags) cvector_insert(vptr, cvector_end(*(vptr)), value, flags)
 
-#define cvector_erase(vptr, iter, flags)					\
-	({									\
-		__cvector_same_type(*(vptr), iter);				\
-		(typeof(iter))__cvector_erase(vptr, sizeof(*(iter)), iter, flags);\
+#define __cvector_push_back(vector, value) \
+	__cvector_insert(vector, cvector_end(vector), value)
+
+#define __cvector_push_front(vector, value) \
+	__cvector_insert(vector, cvector_begin(vector), value)
+
+#define __cvector_erase(vector, pos)							\
+	({										\
+		assert_same_ptr_type(vector, pos);					\
+		(typeof(pos))__cvector_erase_impl(vector, sizeof(*(vector)), pos);	\
 	})
-#define cvector_pop_front(vptr, flags) cvector_erase(vptr, cvector_begin(*(vptr)), flags)
-#define cvector_pop_back(vptr, flags) cvector_erase(vptr, cvector_rbegin(*(vptr)), flags)
 
-#define cvector_extend(vptr, extend, flags)					\
-	({									\
-		__cvector_same_type(*(vptr), extend);				\
-		__cvector_extend(vptr, extend, sizeof(*(extend)), flags);	\
-	})
-// ====================================================================================================================
-#define cvector_shrink(vptr) __cvector_shrink(vptr, sizeof(**(vector)))
+#define __cvector_for_each(vector, iter)		\
+	for (assert_same_ptr_type(vector, iter),	\
+	     (iter) = cvector_begin(vector); 		\
+	     (iter) != cvector_end(vector);		\
+	     (iter)++)
 
-// ====================================================================================================================
-#define cvector_begin(vptr) (vptr)
-#define cvector_end(vptr) ((vptr) + cvector_size(vptr))
-#define cvector_cbegin(vptr) (const typeof(*vptr) *)cvector_begin(vptr)
-#define cvector_cend(vptr) (const typeof(*vptr) *)cvector_end(vptr)
-
-#define cvector_rbegin(vptr) ((vptr) + cvector_size(vptr) - 1)
-#define cvector_rend(vptr) ((vptr) - 1)
-#define cvector_crbegin(vptr) (const typeof(*vptr) *)cvector_rbegin(vptr)
-#define cvector_crend(vptr) (const typeof(*vptr) *)cvector_rend(vptr)
-
-// ====================================================================================================================
-extern void *__cvector_create(uint type_size, uint64 size, cvector_create_flags_t flags);
-extern void *__cvector_copy(const void *vec, uint type_size, cvector_copy_flags_t flags);
-extern void *__cvector_create_from(const void *begin, const void *end, uint type_size, cvector_create_from_flags_t flags);
-extern void *__cvector_at(void *vector, uint64 idx, void *ret);
-extern void *__cvector_insert(void *vptr, uint type_size, void *pos, cvector_insert_flags_t flags);
-extern void *__cvector_erase(void *vptr, uint type_size, void *pos, cvector_erase_flags_t flags);
-extern int __cvector_extend(void *vptr, void *extend, uint type_size, cvector_extend_flags_t flags);
-
-extern int __cvector_shrink(void *vptr, uint type_size);
-
-#define __cvector_same_type(ptr1, ptr2) (void)((ptr1) == (ptr2))
+extern void *__cvector_create_impl(uint type_size, uint64 size, uint64 capacity);
+extern void *__cvector_copy_impl(void *other, uint type_size, uint64 capacity);
+extern void *__cvector_at_impl(const void *vector, uint64 idx, void *ret);
+extern void *__cvector_insert_impl(void *vector, uint type_size, void *pos);
+extern void *__cvector_erase_impl(void *vector, uint type_size, void *pos);
 
 #endif /* CONTAINER_CVECTOR_H */
 

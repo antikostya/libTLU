@@ -31,6 +31,9 @@
 #define container_of(ptr, type, member) \
         ((type *)((uint64)(const void *)(ptr) - offsetof(type, member)))
 
+#define assert_same_ptr_type(p1, p2) (void)((p1) == (p2))
+#define assert_same_type(a, b) same_ptr_type(&(a), &(b))
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
 #define __VA_CLEAR(...)

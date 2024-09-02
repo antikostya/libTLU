@@ -50,6 +50,10 @@
 # define __scanf(a, b) __attribute__((__format__(scanf, a, b)))
 #endif
 
+#ifndef __weak
+# define __weak __attribute__((__weak__))
+#endif
+
 #ifndef likely
 # define likely(expr) __builtin_expect(!!(expr), 1)
 #endif

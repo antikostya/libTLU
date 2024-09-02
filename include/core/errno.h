@@ -7,8 +7,7 @@
 #define EOK 0 /* ok */
 #define EINVAL 1 /* invalid arguments */
 #define ENOMEM 2 /* no memory */
-#define ENOENT 3 /* entry not found */
-#define ENOMODIFY 4 /* object modification forbidden */
+#define ENOSPACE 4 /* no space left */
 
 #endif /* CORE_ERRNO_H */
 

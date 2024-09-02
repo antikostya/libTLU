@@ -79,7 +79,7 @@ type *cvector_copy(type *vector)
 // -----------------------------------------------------------------------------
 // external
 extern void *cvectorAllocate(uint64 size); /* cvector external allocator */
-extern void cvectorDealloate(void * ptr); /* cvector external deallocator */
+extern void cvectorDeallocate(void *ptr); /* cvector external deallocator */
 extern void cvectorPanic(int errorcode); /* cvector external exception handler */
 
 // -----------------------------------------------------------------------------
