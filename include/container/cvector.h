@@ -36,16 +36,24 @@ void cvector_destroy(void *vector);
 // -----------------------------------------------------------------------------
 // element access
 #define cvector_at(vector, idx) __cvector_at(vector, idx)
-#define __cvector_rat(vector, idx) __cvector_at(vector, cvector_size(vector) - idx - 1)
+#define cvector_rat(vector, idx) __cvector_at(vector, cvector_size(vector) - idx - 1)
 
-#define cvector_front(vector) __cvector_at(vector, 0)
-#define cvector_back(vector) __cvector_rat(vector, 0)
+#define cvector_front(vector) cvector_at(vector, 0)
+#define cvector_back(vector) cvector_rat(vector, 0)
 
 // -----------------------------------------------------------------------------
 // capacity
 uint64 cvector_size(const void *vector);
 #define cvector_empty(vector) (cvector_size(vector) == 0)
 uint64 cvector_capacity(const void *vector);
+
+// -----------------------------------------------------------------------------
+// iterators
+#define cvector_begin(vector) (vector)
+#define cvector_end(vector) ((vector) + cvector_size(vector))
+
+#define cvector_rbegin(vector) ((vector) + cvector_size(vector) - 1)
+#define cvector_rend(vector) ((vector) - 1)
 
 // -----------------------------------------------------------------------------
 // modifiers
@@ -63,24 +71,16 @@ uint64 cvector_capacity(const void *vector);
 #define cvector_shrink(pvector) __cvector_expand(pvector, sizeof(**(pvector)), cvector_size(*(pvector)))
 
 // -----------------------------------------------------------------------------
-// iterators
-#define cvector_begin(vector) (vector)
-#define cvector_end(vector) ((vector) + cvector_size(vector))
-
-#define cvector_rbegin(vector) ((vector) + cvector_size(vector) - 1)
-#define cvector_rend(vector) ((vector) - 1)
-
-// -----------------------------------------------------------------------------
 // traverse
 #define cvector_for_each(vector, iter) __cvector_for_each(vector, iter)
 
-// ============================================================================
+// =============================================================================
 // internal macros
 #define __cvector_create(type, size, capacity, fill)					\
 	({										\
 		type *vec = __cvector_create_impl(sizeof(type), size, capacity);	\
-		type *iter;								\
 		if (likely(!PTR_ERR(vec))) {						\
+			type *iter;							\
 			cvector_for_each(vec, iter) {					\
 				*iter = (typeof(*iter))fill;				\
 			}								\
@@ -116,8 +116,8 @@ uint64 cvector_capacity(const void *vector);
 	})
 
 #define __cvector_for_each(vector, iter)		\
-	for (assert_same_ptr_type(vector, iter),	\
-	     (iter) = cvector_begin(vector); 		\
+	for ((iter) = cvector_begin(vector), 		\
+	     assert_same_ptr_type(vector, iter);	\
 	     (iter) != cvector_end(vector);		\
 	     (iter)++)
 
@@ -126,6 +126,7 @@ extern void *__cvector_copy_impl(void *other, uint type_size, uint64 capacity);
 extern void *__cvector_at_impl(const void *vector, uint64 idx, void *ret);
 extern void *__cvector_insert_impl(void *vector, uint type_size, void *pos);
 extern void *__cvector_erase_impl(void *vector, uint type_size, void *pos);
+extern int __cvector_expand(void *ptr, uint type_size, uint64 capacity);
 
 #endif /* CONTAINER_CVECTOR_H */
 

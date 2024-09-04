@@ -96,7 +96,7 @@ void cvector_destroy(void *ptr)
 	struct cvector *cvector = cvector_entry(ptr);
 
 	check_magic(cvector);
-	free(cvector);
+	cvector_deallocate(cvector);
 }
 
 void *__cvector_copy_impl(void *ptr_other, uint type_size, uint64 capacity)
@@ -189,12 +189,14 @@ int __cvector_expand(void *ptr, uint type_size, uint64 capacity)
 
 	check_magic(old);
 
-	if (capacity < old->size)
+	if (unlikely(capacity < old->size))
 		return EINVAL;
-	if (capacity == CVECTOR_CAPACITY_AUTO)
+	else if (capacity == old->capacity)
+		return 0;
+	else if (capacity == CVECTOR_CAPACITY_AUTO)
 		capacity = allocation_grid(capacity);
 
-	vec = malloc(capacity * type_size + sizeof(struct cvector));
+	vec = cvector_allocate(capacity * type_size + sizeof(struct cvector));
 	if (unlikely(vec == NULL))
 		return ENOMEM;
 
@@ -202,6 +204,7 @@ int __cvector_expand(void *ptr, uint type_size, uint64 capacity)
 	vec->capacity = capacity;
 
 	*vptr = vec->data;
+	cvector_deallocate(old);
 	return 0;
 }
 
