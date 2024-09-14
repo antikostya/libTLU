@@ -1,18 +1,18 @@
 #!/bin/bash
 
-if [ $1 == 'libmem' ]; then
+if [[ $1 = 'libmem' ]]; then
 	NAME=LIBMEM
 	TARGET=./build/libmem_unittest.elf
 	DIR=libc/native/mem
-elif [ $1 == 'libstring' ]; then
+elif [[ $1 == 'libstring' ]]; then
 	NAME=LIBSTRING
 	TARGET=./build/libstring_unittest.elf
 	DIR=libc/native/string
-elif [ $1 == 'libchar' ]; then
+elif [[ $1 == 'libchar' ]]; then
 	NAME=LIBCHAR
 	TARGET=./build/libchar_unittest.elf
 	DIR=libc/native/char
-elif [ $1 == 'cvector' ]; then
+elif [[ $1 == 'cvector' ]]; then
 	NAME=CVECTOR
 	TARGET=./build/cvector_unittest.elf
 	DIR=container/cvector
