@@ -10,16 +10,16 @@
 // macro
 #define CVECTOR_CAPACITY_AUTO (uint64)-1
 
-enum {
-	CVECTOR_PANIC_INVALID_POINTER = 1,
-	CVECTOR_PANIC_OUT_OF_RANGE = 2,
+enum cvector_errorcodes {
+	CVECTOR_PANIC_INVALID_POINTER,
+	CVECTOR_PANIC_OUT_OF_RANGE,
 };
 
 // -----------------------------------------------------------------------------
 // external
 extern void *cvector_allocate(uint64 size);
 extern void cvector_deallocate(void *ptr);
-extern __noret void cvector_panic(int errorcode);
+extern __noret void cvector_panic(enum cvector_errorcodes errorcode);
 
 // -----------------------------------------------------------------------------
 // initialization
@@ -36,7 +36,7 @@ void cvector_destroy(void *vector);
 // -----------------------------------------------------------------------------
 // element access
 #define cvector_at(vector, idx) __cvector_at(vector, idx)
-#define cvector_rat(vector, idx) __cvector_at(vector, cvector_size(vector) - idx - 1)
+#define cvector_rat(vector, idx) cvector_at(vector, cvector_size(vector) - idx - 1)
 
 #define cvector_front(vector) cvector_at(vector, 0)
 #define cvector_back(vector) cvector_rat(vector, 0)

@@ -53,7 +53,7 @@
 static jmp_buf jump_buf;
 static bool __cvector_expected_panic = false;
 
-void cvector_panic(int errorcode)
+void cvector_panic(enum cvector_errorcodes errorcode)
 {
 	(void)errorcode;
 	if (__cvector_expected_panic) {

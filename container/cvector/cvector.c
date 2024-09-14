@@ -5,7 +5,7 @@
 // external functions
 extern void *cvector_allocate(uint64 size);
 extern void cvector_deallocate(void *ptr);
-extern void cvector_panic(int errorcode);
+extern void cvector_panic(enum cvector_errorcodes errorcode);
 
 extern void *malloc(uint64);
 extern void free(void *);
@@ -20,7 +20,7 @@ __weak void cvector_deallocate(void *ptr)
 	free(ptr);
 }
 
-__weak __noret void cvector_panic(int errorcode)
+__weak __noret void cvector_panic(enum cvector_errorcodes errorcode)
 {
 	const char *messages[] = {
 		[CVECTOR_PANIC_INVALID_POINTER] = "cvector: invalid pointer (magic check failed)",

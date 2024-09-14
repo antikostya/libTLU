@@ -116,6 +116,9 @@ include libc/test/char/Makefile
 include container/cvector/Makefile
 include container/cvector/test/Makefile
 
+include container/cstring/Makefile
+include container/cstring/test/Makefile
+
 build_all: $(BUILD) $(targets)
 	$(ECHO) $(MESSAGE)
 .PHONY: build_all
