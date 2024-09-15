@@ -7,7 +7,6 @@
 
 // ----------------------------------------------------------------------------
 // macro
-#define CSTRING_CAPACITY_AUTO (uint64)-1
 
 enum cstring_errorcodes {
 	CSTRING_PANIC_INVALID_POINTER,
@@ -28,30 +27,30 @@ void cstring_fini(void);
 // ----------------------------------------------------------------------------
 // construction
 const char *cstring_create(const char *orig);
-void cstring_destroy(char *string);
+void cstring_destroy(const char *string);
 
 const char *cstring_copy(const char *other);
 
 // ----------------------------------------------------------------------------
 // element access
-char cstring_at(const char *string);
-char cstring_rat(const char *string);
+char cstring_at(const char *string, uint64 idx);
+#define cstring_rat(string, idx) cstring_at(string, cstring_size(string) - idx - 1)
 
-char cstring_front(const char *string);
-char cstring_back(const char *string);
+#define cstring_front(string) cstring_at(0)
+#define cstring_back(string) cstring_rat(0)
 
 // ----------------------------------------------------------------------------
 // capacity
 uint64 cstring_size(const char *string);
-bool cstring_empty(const char *string);
+#define cstring_emtpy(string) (cstring_size(string) == 0)
 
 // ----------------------------------------------------------------------------
 // iterators
-const char *cstring_begin(const char *string);
-const char *cstring_end(const char *string);
+#define cstring_begin(string) (string)
+#define cstring_end(string) ((string) + cstring_size(string))
 
-const char *cstring_rbegin(const char *string);
-const char *cstring_rend(const char *string);
+#define cstring_rbegin(string) ((string) + cstring_size(string) - 1)
+#define cstring_rend(string) ((string) - 1)
 
 // ----------------------------------------------------------------------------
 // traverse

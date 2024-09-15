@@ -66,6 +66,7 @@ FixNamespaceComments: false
 
 ForEachMacros:
   - 'cvector_for_each'
+  - 'cstring_for_each'
 
 IncludeBlocks: Preserve
 IncludeCategories:
